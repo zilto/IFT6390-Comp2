@@ -2,3 +2,4 @@
 submission/
 *.zip
 __pycache__
+*.pdf
