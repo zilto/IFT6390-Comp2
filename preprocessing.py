@@ -45,6 +45,7 @@ def agg_over_months(train_df, agg_func=["mean"], freq=12):
     agg_func: hold a list of pandas.aggregate functions
     Freq: the length of the window for aggregation: i.e, freq=6 -> two windows of 6 months
     """
+    train_df = train_df.copy()
     agg_cols = []
     # iterate over all features
     for feature_id in range(len(COL_BASE)):
@@ -67,7 +68,7 @@ def agg_over_months(train_df, agg_func=["mean"], freq=12):
                 start_month += freq
     
     # add back the labels to the list of columns
-    agg_cols.append(train_df.LABELS)
+    # agg_cols.append(train_df.LABELS)
     # reconstruct the dataframe from columns
     return pd.concat(agg_cols, axis=1)
 
