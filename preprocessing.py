@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 
 
@@ -67,12 +67,24 @@ def agg_over_months(train_df, agg_func=["mean"], freq=12):
                 start_month += freq
     
     # add back the labels to the list of columns
-    agg_cols.append(train_df.LABELS)
+    if "LABELS" in train_df.columns:
+        agg_cols.append(train_df.LABELS)
     # reconstruct the dataframe from columns
     return pd.concat(agg_cols, axis=1)
 
 def min_max_scaling(train_df, test_df):
     minmax_scaler = MinMaxScaler()
-    train_df[FEATURES] = minmax_scaler.fit_transform(train_df[FEATURES])
-    test_df[FEATURES] = minmax_scaler.fit_transform(test_df[FEATURES])
+    feature_cols = [col for col in train_df.columns if col != "LABELS"]
+    
+    train_df[feature_cols] = minmax_scaler.fit_transform(train_df[feature_cols])
+    test_df[feature_cols] = minmax_scaler.transform(test_df[feature_cols])
+    return train_df, test_df
+
+def standard_scaling(train_df, test_df):
+    standard_scaler = StandardScaler()
+    feature_cols = [col for col in train_df.columns if col != "LABELS"]
+    
+    train_df[feature_cols] = standard_scaler.fit_transform(train_df[feature_cols])
+    test_df[feature_cols] = standard_scaler.transform(test_df[feature_cols])
+
     return train_df, test_df

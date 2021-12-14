@@ -16,3 +16,15 @@ def cv_split(train_df, n_splits=3):
         eval_sets[idx] = {"train":(x_train, y_train), "test":(x_test, y_test)}
     
     return eval_sets
+
+def study_summary(study):
+    # function to display optuna's best parameters
+    # not all parameters are displayed, just those from the grid
+    print("Study: ", study.study_name)
+    print("\nNumber of finished trials: {}".format(len(study.trials)))
+    print("Best trial:")
+    trial = study.best_trial
+    print("  Validation score: {}".format(trial.value))
+    print("  Params: ")
+    for key, val in trial.params.items():
+        print("    {}: {}".format(key, val))

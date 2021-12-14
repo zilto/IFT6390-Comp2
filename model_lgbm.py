@@ -54,7 +54,6 @@ def train_lgbm(eval_sets, **hyperparams):
         eval_sets[0]["train"][0], eval_sets[0]["train"][1],
         eval_set=[(eval_sets[0]["test"][0], eval_sets[0]["test"][1])],
         eval_metric=["logloss", double_soft_f1_loss, lgbm_f1],
-        verbose=False,
     )
     
     return clf
@@ -66,12 +65,11 @@ def train_best_lgbm(train_df, hyperparams):
     x_train = train_df.loc[:, ~train_df.columns.isin(["LABELS"])].values
     y_train = train_df.loc[:, "LABELS"].values
     
-    clf = LGBMClassifier(objective="binary", verbose=-1, **hyperparams)
+    clf = LGBMClassifier(objective="binary", **hyperparams)
     clf.fit(
         x_train,
         y_train,
         eval_metric=["logloss", "double_soft_f1_loss"],
-        verbose=False,
     )
     
     return clf
