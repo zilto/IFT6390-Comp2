@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+import torch
 
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
-
+from sklearn.model_selection import StratifiedKFold
 
 
 temp_df = pd.read_csv("./data/train.csv", index_col=0, nrows=5)
@@ -25,18 +25,6 @@ COL_BASE = list({col[:-3] for col in FEATURES})
 COL_BY_FEATURE = {}
 for feature in COL_BASE:
     COL_BY_FEATURE[feature] = [col for col in temp_df.columns if feature in col]
-
-
-def create_tensor(df):
-    n_instances = df.shape[0]
-    d_features = len(COL_BASE)
-    t_timesteps = len(MONTHS)
-    
-    tensor = np.zeros((n_instances, d_features, t_timesteps))
-    for t in range(t_timesteps):
-        tensor[:, :, t] = df[COL_BY_MONTH[MONTHS[t]]].values
-        
-    return tensor
 
 
 # aggregate same features over 3, 6, 12 months
@@ -72,6 +60,7 @@ def agg_over_months(train_df, agg_func=["mean"], freq=12):
     # reconstruct the dataframe from columns
     return pd.concat(agg_cols, axis=1)
 
+
 def min_max_scaling(train_df, test_df):
     minmax_scaler = MinMaxScaler()
     feature_cols = [col for col in train_df.columns if col != "LABELS"]
@@ -79,6 +68,7 @@ def min_max_scaling(train_df, test_df):
     train_df[feature_cols] = minmax_scaler.fit_transform(train_df[feature_cols])
     test_df[feature_cols] = minmax_scaler.transform(test_df[feature_cols])
     return train_df, test_df
+
 
 def standard_scaling(train_df, test_df):
     standard_scaler = StandardScaler()
@@ -88,3 +78,29 @@ def standard_scaling(train_df, test_df):
     test_df[feature_cols] = standard_scaler.transform(test_df[feature_cols])
 
     return train_df, test_df
+
+
+def create_tensor(df):
+    n_instances = df.shape[0]
+    d_features = len(COL_BASE)
+    t_timesteps = len(MONTHS)
+    
+    tensor = np.zeros((n_instances, d_features, t_timesteps))
+    for t in range(t_timesteps):
+        tensor[:, :, t] = df[COL_BY_MONTH[MONTHS[t]]].values
+        
+    return tensor
+
+
+def cv_split(train_df, n_splits=3):
+    x_df = train_df.loc[:, ~train_df.columns.isin(["LABELS"])]
+    y_df = train_df.loc[:, "LABELS"]  
+    
+    eval_sets = {}
+    kfold_cv = StratifiedKFold(n_splits=n_splits, shuffle=True)
+    for idx, (train_idx, test_idx) in enumerate(kfold_cv.split(x_df, y_df)):
+        x_train, x_test = x_df.iloc[train_idx], x_df.iloc[test_idx]
+        y_train, y_test = y_df.iloc[train_idx], y_df.iloc[test_idx]
+        eval_sets[idx] = {"train":(x_train, y_train), "test":(x_test, y_test)}
+    
+    return eval_sets
