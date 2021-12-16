@@ -10,44 +10,43 @@ class CNN1D(nn.Module):
     def __init__(self):
         super().__init__()   
 
-        self.layers4 = nn.Sequential(
-            nn.Conv1d(in_channels=18, out_channels=18, kernel_size=4),
-            nn.ReLU(),
-            nn.BatchNorm1d(num_features=18),
-            #nn.InstanceNorm1d(num_features=18),
-            nn.Flatten(),
-            #nn.Linear(in_features=162, out_features=162),
-            #nn.ReLU(),
-            #nn.Dropout(0),
-            #nn.Linear(in_features=162, out_features=2),
-        )
+        # self.layers4 = nn.Sequential(
+        #     nn.Conv1d(in_channels=18, out_channels=18, kernel_size=4),
+        #     nn.Sigmoid(),
+        #     #nn.BatchNorm1d(num_features=18),
+        #     #nn.InstanceNorm1d(num_features=18),
+        #     nn.Flatten(),
+        #     #nn.Linear(in_features=162, out_features=162),
+        #     #nn.ReLU(),
+        #     #nn.Dropout(0),
+        #     #nn.Linear(in_features=162, out_features=2),
+        # )
         
         self.layers3 = nn.Sequential(
             nn.Conv1d(in_channels=18, out_channels=18, kernel_size=3),
-            nn.ReLU(),
-            nn.BatchNorm1d(num_features=18),
+            nn.Sigmoid(),
+            #nn.BatchNorm1d(num_features=18),
             #nn.InstanceNorm1d(num_features=18),
             nn.Flatten(),
-            #nn.Linear(in_features=180, out_features=180),
-            #nn.ReLU(),
-            #nn.Dropout(0),
-            #nn.Linear(in_features=180, out_features=2),
+            nn.Linear(in_features=180, out_features=180),
+            nn.ReLU(),
+            nn.Dropout(0),
+            nn.Linear(in_features=180, out_features=2),
         )
     
     def forward(self, x):
         x3 = self.layers3(x)
-        x4 = self.layers4(x)
+        # x4 = self.layers4(x)
+    
+        #concat = torch.cat((x3, x4), dim=1)
         
-        concat = torch.cat((x3, x4), dim=1)
-        
-        out_block = nn.Sequential(
-            nn.Linear(in_features=342, out_features=342),
-            nn.ReLU(),
-            nn.Dropout(0),
-            nn.Linear(in_features=342, out_features=2)
-        )
-        #x = self.layers(x)
-        return out_block(concat)
+        # out_block = nn.Sequential(
+        #     nn.Linear(in_features=342, out_features=342),
+        #     nn.ReLU(),
+        #     nn.Dropout(0),
+        #     nn.Linear(in_features=342, out_features=2)
+        # )
+        return x3 #out_block(concat)
         
 
 class TrainingHarness(nn.Module):
