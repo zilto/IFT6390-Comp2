@@ -28,11 +28,12 @@ for feature in COL_BASE:
 
 
 # aggregate same features over 3, 6, 12 months
-def agg_over_months(train_df, agg_func=["mean"], freq=12):
+def agg_over_months(train_df, agg_func=["mean"], freq=12, append_label=True):
     """
     agg_func: hold a list of pandas.aggregate functions
     Freq: the length of the window for aggregation: i.e, freq=6 -> two windows of 6 months
     """
+    train_df = train_df.copy()
     agg_cols = []
     # iterate over all features
     for feature_id in range(len(COL_BASE)):
@@ -55,7 +56,7 @@ def agg_over_months(train_df, agg_func=["mean"], freq=12):
                 start_month += freq
     
     # add back the labels to the list of columns
-    if "LABELS" in train_df.columns:
+    if "LABELS" in train_df.columns and append_label == True:
         agg_cols.append(train_df.LABELS)
     # reconstruct the dataframe from columns
     return pd.concat(agg_cols, axis=1)
@@ -68,6 +69,38 @@ def min_max_scaling(train_df, test_df):
     train_df[feature_cols] = minmax_scaler.fit_transform(train_df[feature_cols])
     test_df[feature_cols] = minmax_scaler.transform(test_df[feature_cols])
     return train_df, test_df
+
+
+def rolling_window(train_df, agg_func=["mean"], window_size=3, append_label=True):
+    train_df = train_df.copy()
+    agg_cols = []
+    # iterate over all features
+    for feature_id in range(len(COL_BASE)):
+        # mask to only select columns associated with the feature
+        feature_mask = COL_BY_FEATURE[COL_BASE[feature_id]]
+        
+        for agg in agg_func:
+            # mask columns and aggregate
+            if agg == "mean":
+                agg_col = train_df[feature_mask].rolling(window=window_size, axis=1).mean()
+            elif agg == "std":
+                agg_col = train_df[feature_mask].rolling(window=window_size, axis=1).std()
+            elif agg == "min":
+                agg_col = train_df[feature_mask].rolling(window=window_size, axis=1).min()
+            elif agg == "max":
+                agg_col = train_df[feature_mask].rolling(window=window_size, axis=1).max()
+
+            # name the new column and append to list
+            column_names = [f"{c}_roll_{window_size}_{agg}" for c in agg_col.columns]
+            agg_col.columns = column_names
+            agg_cols.append(agg_col)
+                                
+    
+    # add back the labels to the list of columns
+    if "LABELS" in train_df.columns and append_label == True:
+        agg_cols.append(train_df.LABELS)
+    # reconstruct the dataframe from columns
+    return pd.concat(agg_cols, axis=1)
 
 
 def standard_scaling(train_df, test_df):
